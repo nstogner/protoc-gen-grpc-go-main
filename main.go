@@ -115,30 +115,25 @@ var tmpl = template.Must(template.New("server").Funcs(template.FuncMap{
 package main
 
 import (
+	"fmt"
 	"log"
 	"net"
-	"os"
 
 	"google.golang.org/grpc"
 )
 
 func main() {
-	port := "50051"
-	if p, ok := os.LookupEnv("PORT"); ok {
-		port = p
-	}
-
-	log.Fatal(listen(port))
+	log.Fatal(listen(50051, &service{}))
 }
 
-func listen(port string) error {
-	l, err := net.Listen("tcp", ":"+port)
+func listen(port int, svc {{.PackageName}}.{{.ServiceDescriptorProto.Name}}Server) error {
+	l, err := net.Listen("tcp", fmt.Sprintf(":%v", port))
 	if err != nil {
 		return err
 	}
 
 	s := grpc.NewServer()
-    {{.PackageName}}.Register{{.PackageName | title}}ServiceServer(s, &service{})
+	{{.PackageName}}.Register{{.ServiceDescriptorProto.Name}}Server(s, svc)
 
 	return s.Serve(l)
 }
